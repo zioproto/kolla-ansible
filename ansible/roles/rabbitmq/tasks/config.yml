@@ -4,6 +4,7 @@
     path: "{{ node_config_directory }}/{{ item }}"
     state: "directory"
     recurse: yes
+    mode: "u=rwx,g=rwx,o="
   with_items:
     - "rabbitmq"
 
@@ -11,6 +12,7 @@
   template:
     src: "{{ item }}.json.j2"
     dest: "{{ node_config_directory }}/{{ item }}/config.json"
+    mode: "u=rwx,g=rwx,o="
   with_items:
     - "rabbitmq"
 
@@ -18,8 +20,19 @@
   template:
     src: "{{ item }}.j2"
     dest: "{{ node_config_directory }}/rabbitmq/{{ item }}"
+    mode: "u=rwx,g=rwx,o="
   with_items:
      - "rabbitmq-env.conf"
      - "rabbitmq.config"
      - "rabbitmq-clusterer.config"
      - "definitions.json"
+
+- name: Ensuring config directories have correct owner and permission
+  become: yes
+  file:
+    path: "{{ node_config_directory }}/{{ item }}"
+    recurse: yes
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+  with_items:
+    - "rabbitmq"

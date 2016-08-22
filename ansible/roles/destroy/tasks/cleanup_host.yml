@@ -1,5 +1,6 @@
 ---
 - name: Destroying Kolla host configuration
+  become: true
   command: >
     env enable_haproxy={{ enable_haproxy }}
         kolla_internal_vip_address={{ kolla_internal_vip_address }}

@@ -22,6 +22,10 @@
       dest: /tmp/setup.sh
       mode: 0755
 
+  # duonghq: remove after bugs/1621312 is resolved
+  - name: Add kolla user and group
+    user: name=kolla
+
   - name: Install wget package
     package: name=wget
 

@@ -1,5 +1,6 @@
 ---
 - name: Setting sysctl values
+  become: true
   sysctl: name={{ item.name }} value={{ item.value }} sysctl_set=yes
   with_items:
     - { name: "net.ipv4.ip_nonlocal_bind", value: 1}
@@ -11,6 +12,7 @@
     path: "{{ node_config_directory }}/{{ item }}"
     state: "directory"
     recurse: yes
+    mode: "u=rwx,g=rwx,o="
   with_items:
     - "keepalived"
     - "haproxy"
@@ -19,6 +21,7 @@
   template:
     src: "{{ item }}.json.j2"
     dest: "{{ node_config_directory }}/{{ item }}/config.json"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "keepalived"
     - "haproxy"
@@ -27,6 +30,7 @@
   template:
     src: "{{ item }}"
     dest: "{{ node_config_directory }}/haproxy/haproxy.cfg"
+    mode: "u=rw,g=rw,o="
   with_first_found:
     - "{{ node_custom_config }}/haproxy/{{ inventory_hostname }}/haproxy.cfg"
     - "{{ node_custom_config }}/haproxy/haproxy.cfg"
@@ -36,6 +40,7 @@
   template:
     src: "{{ item }}"
     dest: "{{ node_config_directory }}/keepalived/keepalived.conf"
+    mode: "u=rw,g=rw,o="
   with_first_found:
     - "{{ node_custom_config }}/keepalived/{{ inventory_hostname }}/keepalived.conf"
     - "{{ node_custom_config }}/keepalived/keepalived.conf"
@@ -45,6 +50,18 @@
   copy:
     src: "{{ kolla_external_fqdn_cert }}"
     dest: "{{ node_config_directory }}/haproxy/{{ item }}"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "haproxy.pem"
   when: kolla_enable_tls_external | bool
+
+- name: Ensuring config directories have correct owner and permission
+  become: yes
+  file:
+    path: "{{ node_config_directory }}/{{ item }}"
+    recurse: yes
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+  with_items:
+    - "keepalived"
+    - "haproxy"

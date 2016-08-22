@@ -4,6 +4,7 @@
     path: "{{ node_config_directory }}/{{ item }}"
     state: "directory"
     recurse: yes
+    mode: "u=rwx,g=rwx,o="
   with_items:
     - "fluentd"
     - "fluentd/input"
@@ -18,6 +19,7 @@
   template:
     src: "{{ item }}.json.j2"
     dest: "{{ node_config_directory }}/{{ item }}/config.json"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "fluentd"
     - "kolla-toolbox"
@@ -27,6 +29,7 @@
   template:
     src: "conf/input/{{ item }}.conf.j2"
     dest: "{{ node_config_directory }}/fluentd/input/{{ item }}.conf"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "00-global"
     - "01-syslog"
@@ -37,6 +40,7 @@
   template:
     src: "conf/output/{{ item }}.conf.j2"
     dest: "{{ node_config_directory }}/fluentd/output/{{ item }}.conf"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "00-local"
     - "01-es"
@@ -53,6 +57,7 @@
   template:
     src: "conf/filter/{{ item }}.conf.j2"
     dest: "{{ node_config_directory }}/fluentd/filter/{{ item }}.conf"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "00-record_transformer"
     - "01-rewrite"
@@ -61,6 +66,7 @@
   template:
     src: "td-agent.conf.j2"
     dest: "{{ node_config_directory }}/{{ item }}/td-agent.conf"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "fluentd"
 
@@ -68,6 +74,7 @@
   template:
     src: "cron-logrotate-{{ item.name }}.conf.j2"
     dest: "{{ node_config_directory }}/cron/logrotate/{{ item.name }}.conf"
+    mode: "u=rw,g=rw,o="
   when: item.enabled | bool
   with_items:
     - { name: "ansible", enabled: "yes" }
@@ -106,3 +113,15 @@
     - { name: "swift", enabled: "{{ enable_swift }}" }
     - { name: "tacker", enabled: "{{ enable_tacker }}" }
     - { name: "watcher", enabled: "{{ enable_watcher }}" }
+
+- name: Ensuring config directories have correct owner and permission
+  become: yes
+  file:
+    path: "{{ node_config_directory }}/{{ item }}"
+    recurse: yes
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
+    mode: "u=rwx,g=rwx,o="
+  with_items:
+    - "heka"
+    - "cron"

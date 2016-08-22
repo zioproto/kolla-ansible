@@ -4,6 +4,7 @@
     path: "{{ node_config_directory }}/{{ item }}"
     state: "directory"
     recurse: yes
+    mode: "u=rwx,g=rwx,o="
   with_items:
     - "mariadb"
 
@@ -11,6 +12,7 @@
   template:
     src: "{{ item }}.json.j2"
     dest: "{{ node_config_directory }}/{{ item }}/config.json"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "mariadb"
 
@@ -23,6 +25,7 @@
       - "{{ node_custom_config }}/galera.cnf"
       - "{{ node_custom_config }}/mariadb/{{ inventory_hostname }}/galera.cnf"
     dest: "{{ node_config_directory }}/{{ item }}/galera.cnf"
+    mode: "u=rw,g=rw,o="
   with_items:
     - "mariadb"
 
@@ -30,5 +33,16 @@
   template:
     src: "{{ role_path }}/templates/wsrep-notify.sh.j2"
     dest: "{{ node_config_directory }}/{{ item }}/wsrep-notify.sh"
+    mode: "u=rwx,g=rwx,o="
+  with_items:
+    - "mariadb"
+
+- name: Ensuring config directories have correct owner and permission
+  become: yes
+  file:
+    path: "{{ node_config_directory }}/{{ item }}"
+    recurse: yes
+    owner: "{{ config_owner_user }}"
+    group: "{{ config_owner_group }}"
   with_items:
     - "mariadb"
